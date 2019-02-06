@@ -18,30 +18,54 @@ def site_map(link):
             },
         }
     """
-    
-    r = requests.get(link)
-    html = r.text
-    soup = BeautifulSoup(html, 'html.parser')
-    parsed_data = {link:{
-            'title':soup.title.text,
-             'links':set()}}
+    # Preparing variables for use
+    parsed_data = {}
+    queue = [link]
+    history = set()
 
+    # system of queueing
+    while queue:
+        current_link = queue[0]
 
-    for tag_a in soup.find_all('a'):
-        sub_link = tag_a.get('href')
-
-        if sub_link.startswith(link):
-            parsed_data[link]['links'].add(sub_link)
-        elif sub_link.startswith('/'):
-            parsed_data[link]['links'].add(link + sub_link)
-        elif sub_link.startswith('#'):
+        # Make sure if it has not been parsed
+        if current_link in history:
+            del queue[0]
             continue
-        else:
-            parsed_data[link]['links'].add(sub_link)
+        history.add(current_link)
 
-    pprint(parsed_data)
 
+        # html parsing
+        r = requests.get(current_link)
+        html = r.text
+        soup = BeautifulSoup(html, 'html.parser')
+
+        # add dict entry
+        parsed_data[current_link] = {
+                'title':soup.title.text,
+                'links':set()}
+
+        # parsing sublinks
+        for tag_a in soup.find_all('a'):
+            sub_link = tag_a.get('href')
+
+            # Correct link1
+            if sub_link.startswith(link):
+                parsed_data[current_link]['links'].add(sub_link)
+                if sub_link not in queue:
+                    queue.append(sub_link)
+            # Relative link
+            elif sub_link.startswith('/'):
+                parsed_data[current_link]['links'].add(link + sub_link)
+                if sub_link not in queue:
+                    queue.append(link + sub_link)
+            # Anchored link
+            elif sub_link.startswith('#'):
+                continue
+            # Alien link
+            else:
+                parsed_data[current_link]['links'].add(sub_link)
+        del queue[0]
 
 
 if __name__ == '__main__':
-    site_map('http://malovanka.pl')
+    site_map('http://malovanka.pl/')
