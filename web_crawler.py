@@ -23,7 +23,7 @@ def site_map(link):
     queue = [link]
     history = set()
 
-    # system of queueing
+    # System of queueing
     while queue:
         current_link = queue[0]
 
@@ -33,22 +33,24 @@ def site_map(link):
             continue
         history.add(current_link)
 
-
-        # html parsing
+        # Html parsing
         r = requests.get(current_link)
+        if r.status_code >= 400:
+            continue
+
         html = r.text
         soup = BeautifulSoup(html, 'html.parser')
 
-        # add dict entry
+        # Add dict entry
         parsed_data[current_link] = {
                 'title':soup.title.text,
                 'links':set()}
 
-        # parsing sublinks
+        # Parsing sublinks
         for tag_a in soup.find_all('a'):
             sub_link = tag_a.get('href')
 
-            # Correct link1
+            # Correct link
             if sub_link.startswith(link):
                 parsed_data[current_link]['links'].add(sub_link)
                 if sub_link not in queue:
@@ -58,14 +60,10 @@ def site_map(link):
                 parsed_data[current_link]['links'].add(link + sub_link)
                 if sub_link not in queue:
                     queue.append(link + sub_link)
-            # Anchored link
-            elif sub_link.startswith('#'):
-                continue
-            # Alien link
-            else:
-                parsed_data[current_link]['links'].add(sub_link)
-        del queue[0]
 
+        del queue[0]
+    return parsed_data
 
 if __name__ == '__main__':
-    site_map('http://malovanka.pl/')
+    d = site_map('http://localhost:8000')
+    pprint(d)
