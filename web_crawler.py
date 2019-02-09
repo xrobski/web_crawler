@@ -1,5 +1,4 @@
 import requests
-from pprint import pprint
 from bs4 import BeautifulSoup
 
 
@@ -59,11 +58,5 @@ def site_map(link):
                 parsed_data[current_link]['links'].add(sub_link)
                 if sub_link not in queue:
                     queue.append(sub_link)
-
-
         del queue[0]
     return parsed_data
-
-if __name__ == '__main__':
-    d = site_map('http://localhost:8000')
-    pprint(d)
