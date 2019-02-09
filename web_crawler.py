@@ -50,16 +50,16 @@ def site_map(link):
         for tag_a in soup.find_all('a'):
             sub_link = tag_a.get('href')
 
+            # Sub-link
+            if sub_link.startswith('/'):
+                sub_link = link + sub_link
+
             # Correct link
             if sub_link.startswith(link):
                 parsed_data[current_link]['links'].add(sub_link)
                 if sub_link not in queue:
                     queue.append(sub_link)
-            # Relative link
-            elif sub_link.startswith('/'):
-                parsed_data[current_link]['links'].add(link + sub_link)
-                if sub_link not in queue:
-                    queue.append(link + sub_link)
+
 
         del queue[0]
     return parsed_data
